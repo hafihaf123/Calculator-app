@@ -15,15 +15,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.calculator.ui.theme.CalculatorTheme
 import kotlin.math.*
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,21 +40,70 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    when (calculate()) {
+                    /*when (calculate()) {
                         "/" -> {
-                            Output("options:")
-                            Output("1. convert (c)")
-                            Output("2. bodies (b)")
-                            Output("3. rule of three (Ro3)")
-                            Output("4. quadratic function (q)")
-                            Output("5. cube (cb)")
-                            Output("6. prism (p)")
+                            Output("options:", Modifier.padding(start = 16.dp, top = 32.dp))
+                            Output("1. convert (c)", Modifier.padding(start = 16.dp, top = 32.dp))
+                            Output("2. bodies (b)", Modifier.padding(start = 16.dp, top = 32.dp))
+                            Output("3. rule of three (Ro3)", Modifier.padding(start = 16.dp, top = 32.dp))
+                            Output("4. quadratic function (q)", Modifier.padding(start = 16.dp, top = 32.dp))
+                            Output("5. cube (cb)", Modifier.padding(start = 16.dp, top = 32.dp))
+                            Output("6. prism (p)", Modifier.padding(start = 16.dp, top = 32.dp))
                         }
-                        "/prism", "/6", "/p" -> Adv().Prism()
-                    }
+                        "/p", "/6" -> Adv().Prism()
+                    }*/
+                    Evaluate()
                 }
             }
         }
+    }
+}
+
+@Composable
+fun Evaluate() {
+    val ex = calculate()
+    var isCalculateScreen by remember { mutableStateOf("true")}
+    var activityToClear: @Composable (() -> Unit)? = null
+    when (ex) {
+        "/" -> {
+            Output("options:", Modifier.padding(start = 20.dp, top = 140.dp))
+            Output("1. convert (c)", Modifier.padding(start = 20.dp, top = 160.dp))
+            Output("2. bodies (b)", Modifier.padding(start = 20.dp, top = 180.dp))
+            Output("3. rule of three (Ro3)", Modifier.padding(start = 20.dp, top = 200.dp))
+            Output("4. quadratic function (q)", Modifier.padding(start = 20.dp, top = 220.dp))
+            Output("5. cube (cb)", Modifier.padding(start = 20.dp, top = 240.dp))
+            Output("6. prism (p)", Modifier.padding(start = 20.dp, top = 260.dp))
+        }
+        "/p", "/6" -> {
+            Adv().Prism()
+            Button(
+                    onClick = {
+                        isCalculateScreen = "on"
+                        activityToClear = @Composable {
+                            Adv().Prism()
+                        }
+                    },
+            modifier = Modifier.padding(start = 250.dp, top = 220.dp, bottom = 240.dp)
+            ) {
+                Text(text = "Back")
+            }
+
+        }
+    }
+    if (isCalculateScreen == "on") {
+        activityToClear?.let {
+            // Call your clear function here
+            ClearComposeScreen.Clear(activityToClear!!)
+        }
+        Evaluate()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EvaluatePreview() {
+    CalculatorTheme {
+        Evaluate()
     }
 }
 
@@ -258,9 +312,52 @@ class Adv {
 }
 
 @Composable
-fun Output(mes: String) {
+fun Output(mes: String, modifier: Modifier = Modifier) {
     Text(
         text = mes,
-        modifier = Modifier.padding(top = 16.dp)
+        modifier = modifier.padding(top = 16.dp)
     )
 }
+
+/*object ClearScreen {
+    fun clear(activity: Activity) {
+        val rootView = activity.window.decorView.findViewById<View>(R.id.content)
+        clearView(rootView)
+    }
+
+    private fun clearView(view: View) {
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                clearView(child)
+            }
+        } else {
+            view.visibility = View.GONE
+        }
+    }
+}*/
+
+object ClearComposeScreen {
+    @Composable
+    fun Clear(content: @Composable () -> Unit) {
+        val context = LocalContext.current
+        DisposableEffect(Unit) {
+            onDispose { }
+        }
+
+        ComposeView(context).apply {
+            setContent {
+                content.invoke()
+            }
+        }
+    }
+}
+
+/*
+@Preview(showBackground = true)
+@Composable
+fun OutputPreview() {
+    CalculatorTheme {
+        Output("haf", Modifier.padding(start = 16.dp, top = 32.dp))
+    }
+}*/
